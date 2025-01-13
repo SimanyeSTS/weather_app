@@ -15,16 +15,28 @@ def get_weather_data(lat, lon):
         day = datetime.fromtimestamp(item['dt']).strftime('%A')
         temp_min = item['main']['temp_min']
         temp_max = item['main']['temp_max']
+        wind_speed = item['wind']['speed']
+        humidity = item['main']['humidity']
+        
         if day not in daily_forecasts:
             daily_forecasts[day] = {
                 'temp_min': temp_min,
                 'temp_max': temp_max,
                 'icon': item['weather'][0]['icon'],
-                'description': item['weather'][0]['description']
+                'description': item['weather'][0]['description'],
+                'wind_speed': wind_speed,
+                'humidity': humidity,
+                'count': 1,
+                'avg_wind': wind_speed,
+                'avg_humidity': humidity
             }
         else:
             daily_forecasts[day]['temp_min'] = min(daily_forecasts[day]['temp_min'], temp_min)
             daily_forecasts[day]['temp_max'] = max(daily_forecasts[day]['temp_max'], temp_max)
+            daily_forecasts[day]['count'] += 1
+            daily_forecasts[day]['avg_wind'] += wind_speed
+            daily_forecasts[day]['avg_humidity'] += humidity
+
     forecast = []
     for day, data in list(daily_forecasts.items())[:5]:
         forecast.append({
@@ -32,7 +44,9 @@ def get_weather_data(lat, lon):
             'temp_min': data['temp_min'],
             'temp_max': data['temp_max'],
             'description': data['description'],
-            'icon': data['icon']
+            'icon': data['icon'],
+            'wind_speed': round(data['avg_wind'] / data['count'], 1),
+            'humidity': round(data['avg_humidity'] / data['count'])
         })
     weather_data = {
         'current': {
